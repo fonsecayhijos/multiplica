@@ -72,26 +72,38 @@ export default function Funnel() {
   const handleSubmit = async () => {
     if (!form.nombre || !form.email) return;
     setSubmitting(true);
-    // Placeholder: mailto until Formspree is set
-    const body = `
-Nuevo lead Multiplica
 
-Mercado: ${form.mercado}
-Tipo: ${form.tipo}
-Presupuesto: ${form.presupuesto}
-Experiencia: ${form.experiencia}
-Nombre: ${form.nombre}
-Email: ${form.email}
-Teléfono: ${form.telefono}
-Mensaje: ${form.mensaje || "-"}
-    `.trim();
-    const subject = encodeURIComponent(`Lead Multiplica - ${form.nombre}`);
-    window.location.href = `mailto:info@multiplica.org?subject=${subject}&body=${encodeURIComponent(body)}`;
-    setTimeout(() => {
+    try {
+      const response = await fetch("https://formspree.io/f/mpqvbpey", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          _subject: `Nuevo lead Multiplica - ${form.nombre}`,
+          mercado: form.mercado,
+          tipo: form.tipo,
+          presupuesto: form.presupuesto,
+          experiencia: form.experiencia,
+          nombre: form.nombre,
+          email: form.email,
+          telefono: form.telefono || "-",
+          mensaje: form.mensaje || "-",
+        }),
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        setStep("final");
+      } else {
+        alert("Hubo un error al enviar. Inténtalo de nuevo.");
+      }
+    } catch (err) {
+      alert("Error de conexión. Inténtalo de nuevo.");
+    } finally {
       setSubmitting(false);
-      setSubmitted(true);
-      setStep("final");
-    }, 600);
+    }
   };
 
   if (submitted || step === "final") {
